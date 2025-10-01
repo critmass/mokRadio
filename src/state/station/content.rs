@@ -1,69 +1,63 @@
 pub mod live;
 pub mod track;
 
-use std::{collections::BTreeSet, fs::{read_dir}, path::Path};
-use chrono::Duration;
+use std::{collections::BTreeSet, path::Path};
 
 use live::LiveStream;
-use track::Track;
+use track::{Track, load_tracks_from_path};
+use rand::seq::SliceRandom;
+use rand::rng;
 
-
+/// Playlist behavior types for station content management
 pub enum PlayType {
-    Random(Vec<Track>),
-    Chronologic(BTreeSet<Track>),
-    Reverse(BTreeSet<Track>),
-    Shuffle(Vec<Track>),
-    Live(BTreeSet<LiveStream>),
-    Dead
+    Random(Vec<Track>),          // Pick any track except the one just played
+    Chronologic(BTreeSet<Track>), // Play tracks ordered by modification date
+    Reverse(BTreeSet<Track>),     // Play tracks in reverse chronological order
+    Shuffle(Vec<Track>),          // Play all tracks once in random order
+    Live(BTreeSet<LiveStream>),   // Scheduled live streams (not yet implemented)
+    Dead                          // Station is off-air/inactive
 }
 
 impl PlayType {
-    pub fn new(play_type:&str, station_path:&Path) -> Self {
+    /// Creates a PlayType from station.info configuration
+    /// 
+    /// Loads tracks from station_path/playlist/ folder or streams from schedule.info
+    pub fn new(play_type: &str, station_path: &Path) -> Self {
         match play_type {
-            "Dead" => {
-                return PlayType::Dead
+            "Dead" => PlayType::Dead,
+            
+            "Chronologic" => {
+                // Load and sort tracks by modification date (oldest first)
+                let play_list: BTreeSet<Track> = load_tracks_from_path(&station_path.join("playlist")).collect();
+                return PlayType::Chronologic(play_list);
             },
-            "Live" => {
-                let return_type = PlayType::Live(BTreeSet::new());
-                return return_type;
+            
+            "Reverse" => {
+                // Load and sort tracks by modification date (newest first)
+                let play_list: BTreeSet<Track> = load_tracks_from_path(&station_path.join("playlist")).collect();
+                return PlayType::Reverse(play_list);
             },
-            "Chronologic" | "Reverse" => {
-                let mut return_type = PlayType::Chronologic(BTreeSet::new());
-                let play_list: BTreeSet<Track> = read_dir(station_path)
-                    .unwrap()
-                    .filter_map(|dir_entry| {
-                        let unwrapped_entry = dir_entry.unwrap();
-                        let meta_data = unwrapped_entry.metadata().unwrap();
-                        if meta_data.is_file() {
-                            let entry_track = Track {
-                                length:meta_data.len() as Duration,
-                                title:unwrapped_entry.file_name(),
-                                modified:meta_data.modified().unwrap()
-                            };
-                            return Some(entry_track);
-                        }
-                        else {
-                            return None
-                        }
-                    })
-                    .collect();
-                return return_type;},
+            
             "Random" => {
-                let return_type = PlayType::Dead;
-                return return_type;
+                // Load tracks for random selection (excluding last played)
+                let play_list: Vec<Track> = load_tracks_from_path(&station_path.join("playlist")).collect();
+                return PlayType::Random(play_list);
             },
+            
             "Shuffle" => {
-                let return_type = PlayType::Dead;
-                return return_type;},
-            _ => {
-                let return_type = PlayType::Dead;
-                return return_type;
-            }
+                // Load and shuffle tracks for one complete playthrough
+                let mut play_list: Vec<Track> = load_tracks_from_path(&station_path.join("playlist")).collect();
+                play_list.shuffle(&mut rng());
+                return PlayType::Shuffle(play_list);
+            },
+            
+            _ => PlayType::Dead,
         }
     }
 }
 
+/// Content types that can be played on a station
 pub enum Content {
-    Track(Track),
-    Live(LiveStream)
+    Track(Track),         // Local audio file
+    Live(LiveStream)      // Streaming content
 }

@@ -1,11 +1,12 @@
-use std::{ffi::OsString, path::Path, time::SystemTime};
+use std::{fs::DirEntry, path::{Path, PathBuf}, time::SystemTime};
 
 use chrono::{Duration};
 
+/// Audio track with metadata for playlist management
 pub struct Track {
-    pub length: Duration,
-    pub title: OsString,
-    pub modified: SystemTime
+    duration: Duration,    // Length of audio file
+    modified: SystemTime,  // File modification time (used for ordering)
+    location: PathBuf,     // Full path to audio file
 }
 
 impl PartialEq for Track {
@@ -13,14 +14,16 @@ impl PartialEq for Track {
         self.modified == other.modified
     }
 }
-impl Eq for Track {
-    
-}
+
+impl Eq for Track {}
+
+// Tracks are ordered by modification time for Chronologic/Reverse playlists
 impl Ord for Track {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.modified.cmp(&other.modified)
     }
 }
+
 impl PartialOrd for Track {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(other))
@@ -28,7 +31,32 @@ impl PartialOrd for Track {
 }
 
 impl Track {
-    pub fn new(track_path:&Path) -> Self {
-
+    /// Creates a Track from a directory entry
+    /// 
+    /// Currently only supports MP3 files
+    pub fn new(dir_entry: &DirEntry) -> Option<Self> {
+        let location = dir_entry.path();
+        let duration = Duration::from_std(mp3_duration::from_path(&location).unwrap()).unwrap();
+        let modified = dir_entry.metadata().unwrap().modified().unwrap();
+        return Some(Track {
+            duration, modified, location
+        });
     }
+}
+
+/// Loads MP3 tracks from a playlist directory
+/// 
+/// Returns an iterator of Track objects, skipping non-file entries
+pub fn load_tracks_from_path(playlist_path: &Path) -> impl Iterator<Item = Track> {
+    std::fs::read_dir(playlist_path)
+        .unwrap()
+        .filter_map(|dir_entry| {
+            let unwrapped_entry = dir_entry.ok()?;
+            let meta_data = unwrapped_entry.metadata().ok()?;
+            if meta_data.is_file() {
+                Track::new(&unwrapped_entry)
+            } else {
+                None
+            }
+        })
 }

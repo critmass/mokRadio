@@ -2,14 +2,17 @@ use std::{fs::read_to_string, path::Path};
 use serde::Deserialize;
 use serde_json::from_str;
 
+/// Station configuration loaded from station.info JSON file
 #[derive(Deserialize)]
-
 pub struct StationConfig {
-    pub play_type: String,
-    pub purge: bool,
+    pub play_type: String,  // Type of playlist: Random, Shuffle, Chronologic, etc.
+    pub purge: bool,        // Whether to delete audio files after playing
 }
 
 impl StationConfig {
+    /// Loads station configuration from JSON file
+    /// 
+    /// Returns a "Dead" station config if file fails to load
     pub fn new(file_path: &Path) -> Self {
         let configuration_file = read_to_string(file_path);
         match configuration_file {

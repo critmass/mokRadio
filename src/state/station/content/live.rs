@@ -1,6 +1,6 @@
 use chrono::{DateTime, Duration, Utc};
 pub struct LiveStream {
-    url:String,
+    location:String,
     start:DateTime<Utc>,
     delay:Option<Duration>,
     duration:Option<Duration>,

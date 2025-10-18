@@ -1,6 +1,6 @@
 use std::{fs::DirEntry, path::{Path, PathBuf}, time::SystemTime};
 
-use chrono::{Duration};
+use chrono::{Duration, TimeDelta};
 
 /// Audio track with metadata for playlist management
 pub struct Track {
@@ -41,6 +41,28 @@ impl Track {
         return Some(Track {
             duration, modified, location
         });
+    }
+
+    pub fn get_location(&self) -> &Path {
+        &self.location
+    }
+
+    pub fn get_duration(&self) -> &TimeDelta {
+        &self.duration
+    }
+
+    pub fn was_modified_on(&self) -> &SystemTime {
+        &self.modified
+    }
+}
+
+impl Clone for Track {
+    fn clone(&self) -> Self {
+        Track { 
+            duration: self.duration.clone(), 
+            modified: self.modified.clone(), 
+            location: self.location.clone() 
+        }
     }
 }
 

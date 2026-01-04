@@ -2,8 +2,10 @@
 
 use std::path::PathBuf;
 use std::fs::File;
-use std::io::BufReader;
 use rodio::Decoder;
+
+use crate::radio::station::content::track::Track;
+use crate::radio::station::content::StationID;
 
 // ===== Input Thread → Station Manager =====
 
@@ -20,17 +22,17 @@ pub enum InputEvent {
 // ===== Station Manager → File Loader =====
 
 /// Requests from Station Manager to File Loader thread
-#[derive(Debug)]
+
 pub enum FileRequest {
     /// Request to load a specific track for a station
     LoadTrack {
-        station_id: usize,
+        station_id: StationID,
         file_path: PathBuf,
     },
     
     /// Request to scan a directory and return track metadata
     ScanDirectory {
-        station_id: usize,
+        station_id: StationID,
         directory_path: PathBuf,
     },
 }
@@ -41,19 +43,20 @@ pub enum FileRequest {
 pub enum FileResponse {
     /// Decoded audio file ready to append to sink
     TrackLoaded {
-        station_id: usize,
-        decoder: Decoder<BufReader<File>>,
+        station_id: StationID,
+        decoder: Decoder<File>,
     },
     
     /// Directory scan complete with track metadata
     DirectoryScanned {
-        station_id: usize,
+        station_id: StationID,
+        tracks:Vec<Track>
         // TODO: Add track metadata list
     },
     
     /// Error loading file
     LoadError {
-        station_id: usize,
+        station_id: StationID,
         error_message: String,
     },
 }

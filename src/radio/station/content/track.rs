@@ -35,6 +35,7 @@ impl Track {
     /// 
     /// Currently only supports MP3 files
     pub fn new(dir_entry: &DirEntry) -> Option<Self> {
+
         let location = dir_entry.path();
         let duration = Duration::from_std(mp3_duration::from_path(&location).unwrap()).unwrap();
         let modified = dir_entry.metadata().unwrap().modified().unwrap();
@@ -44,19 +45,23 @@ impl Track {
     }
 
     pub fn get_location(&self) -> &Path {
+
         &self.location
     }
 
     pub fn get_duration(&self) -> &TimeDelta {
+        
         &self.duration
     }
 
     pub fn was_modified_on(&self) -> &SystemTime {
+        
         &self.modified
     }
 }
 
 impl Clone for Track {
+
     fn clone(&self) -> Self {
         Track { 
             duration: self.duration.clone(), 
@@ -70,6 +75,7 @@ impl Clone for Track {
 /// 
 /// Returns an iterator of Track objects, skipping non-file entries
 pub fn load_tracks_from_path(playlist_path: &Path) -> impl Iterator<Item = Track> {
+
     std::fs::read_dir(playlist_path)
         .unwrap()
         .filter_map(|dir_entry| {

@@ -8,13 +8,25 @@ use track::{Track, load_tracks_from_path};
 use rand::seq::SliceRandom;
 use rand::rng;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Band {
     AM,
     PM
 }
+
+#[derive(Debug, PartialEq, Eq)]
 pub struct StationID {
     band:Band,
     index:usize
+}
+
+impl Clone for StationID {
+    fn clone(&self) -> Self {
+        StationID { 
+            band: self.band.clone(), 
+            index: self.index.clone() 
+        }
+    }
 }
 
 /// Playlist behavior types for station content management

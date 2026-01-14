@@ -16,7 +16,7 @@ struct Radio {
 }
 
 impl Radio {
-    pub fn new (current_dial_position:u64, current_band:Band) {
+    pub fn new (current_dial_position:u64, current_band:Band) -> Self {
         
     }
 }
@@ -29,7 +29,7 @@ impl Radio {
 /// - Controls sink volumes based on dial position
 /// - Requests files from File Loader thread
 /// - Appends decoded audio to sinks
-pub fn run_station_manager(
+pub fn run_radio(
     input_rx: Receiver<messages::InputEvent>,
     file_req_tx: Sender<messages::FileRequest>,
     file_resp_rx: Receiver<messages::FileResponse>

@@ -6,6 +6,7 @@ mod input;
 mod file_loader;
 mod audio;
 mod messages;
+mod constants;
 
 use std::fs::File;
 use std::path::{PathBuf};

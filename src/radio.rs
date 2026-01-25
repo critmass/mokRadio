@@ -6,41 +6,39 @@ use std::sync::mpsc::{Receiver, Sender};
 use rodio::OutputStream;
 use station::Station;
 
-use crate::{messages, radio::station::content::{StationID, Band}};
+use crate::{radio::station::content::{StationID, Band}};
+use crate::messages;
+use crate::constants;
 
 struct Radio {
     current_station:StationID,
-    am:[Station; 12],
-    fm:[Station; 12],
-    output:OutputStream
+    current_dial_position:usize,
+    am:[Station; constants::NUMBER_OF_STATIONS],
+    fm:[Station; constants::NUMBER_OF_STATIONS],
+    am_volume_profile:[f64; constants::ENCODER_HALF],
+    fm_volume_profile:[f64; constants::ENCODER_HALF],
+    output:OutputStream,
+    input_events: Receiver<messages::InputEvent>,
+    file_requester: Sender<messages::FileRequest>,
+    file_returns: Receiver<messages::FileResponse>,
 }
 
 impl Radio {
-    pub fn new (current_dial_position:u64, current_band:Band) -> Self {
+    pub fn new (
+        current_dial_position:usize, 
+        current_band:Band, 
+        input_events: Receiver<messages::InputEvent>,
+        file_requester: Sender<messages::FileRequest>,
+        file_returns: Receiver<messages::FileResponse> 
+
+    ) -> Self {
+        
+        let current_station = StationID {
+            index: current_dial_position / constants::TICKS_PER_STATION,
+            band: current_band
+        };
         
     }
-}
-
-/// Runs the station manager thread
-/// 
-/// Responsibilities:
-/// - Owns all Station structs
-/// - Receives input events (dial position, AM/FM)
-/// - Controls sink volumes based on dial position
-/// - Requests files from File Loader thread
-/// - Appends decoded audio to sinks
-pub fn run_radio(
-    input_rx: Receiver<messages::InputEvent>,
-    file_req_tx: Sender<messages::FileRequest>,
-    file_resp_rx: Receiver<messages::FileResponse>
-) {
-    // TODO: Initialize stations
-    // TODO: Main loop
-    //   - Check input events
-    //   - Update station volumes based on dial
-    //   - Check sink lengths
-    //   - Request files as needed
-    //   - Append received audio
     
 }
 

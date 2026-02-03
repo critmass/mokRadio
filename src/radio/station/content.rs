@@ -20,7 +20,7 @@ use rand::rng;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Band {
     AM,
-    PM  // TODO: Should this be FM?
+    FM 
 }
 
 /// Unique identifier for a station combining band and index

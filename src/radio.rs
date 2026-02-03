@@ -1,7 +1,7 @@
 // Station Manager Thread
 // Manages all radio stations, receives input events, sends file requests
 pub mod station;
-use std::sync::mpsc::{Receiver, Sender};
+use std::{path::Path, sync::mpsc::{Receiver, Sender}};
 
 use rodio::OutputStream;
 use station::Station;
@@ -32,13 +32,23 @@ impl Radio {
         file_returns: Receiver<messages::FileResponse> 
 
     ) -> Self {
-        
+
         let current_station = StationID {
             index: current_dial_position / constants::TICKS_PER_STATION,
             band: current_band
         };
-        
+        let am = Radio::initialize_station_array(&Band::AM);
+        let am = Radio::initialize_station_array(&Band::FM);
+
     }
-    
+    pub fn initialize_station_array(band: &Band) -> [Station; constants::NUMBER_OF_STATIONS] {
+
+        let state_vector: Vec<Station> = Vec::new();
+        let 
+
+        for station_number in 0..constants::NUMBER_OF_STATIONS {
+            let station_path = Path::new();
+        }
+    }
 }
 

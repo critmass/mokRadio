@@ -77,9 +77,9 @@ impl Station {
     /// - Sink connected to the output stream
     /// - Playlist loaded according to station.info
     /// - Content fields initialized as None (call `prime_content()` to load)
-    pub fn new(station_path: &Path, band: &OutputStream) -> Self {
+    pub fn new(station_path: &Path, output: &OutputStream) -> Self {
         // Create dedicated audio sink for this station
-        let station_sink = Sink::connect_new(band.mixer());
+        let station_sink = Sink::connect_new(output.mixer());
         
         // Load station configuration from JSON
         let station_configurations = StationConfig::new(station_path);
@@ -99,6 +99,22 @@ impl Station {
         };
 
         new_station
+    }
+
+    pub fn new_dead(station_path: &Path) -> Self {
+
+        let dead_station = Station {
+            current_content: None, 
+            next_content: None,
+            play_list: PlayType::Dead,
+            purge: false,
+            on_air: false,
+            has_skipped: true,
+            sink: None,
+            station_path: station_path.to_path_buf()
+        };
+
+        dead_station
     }
     
     /// Gets the next track according to the station's playlist strategy
@@ -297,7 +313,7 @@ impl Station {
     /// # Usage
     /// Called by Station Manager based on dial position to create the
     /// smooth fade between station audio and static as the dial is tuned.
-    pub fn volume_set(&mut self, volume: f32) {
+    pub fn set_volume(&mut self, volume: f32) {
         if let Some(sink) = self.sink.as_mut() {
             sink.set_volume(volume);
         }

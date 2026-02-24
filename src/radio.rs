@@ -1,9 +1,11 @@
 // Station Manager Thread
 // Manages all radio stations, receives input events, sends file requests
 pub mod station;
+pub mod utilities;
 use std::{array, path::Path, sync::mpsc::{Receiver, Sender}};
 
 use rodio::{OutputStream, OutputStreamBuilder, Sink};
+
 use station::Station;
 
 use crate::{constants::STATION_PATH, radio::station::content::{Band, StationID}};
@@ -32,7 +34,6 @@ impl Radio {
         input_events: Receiver<messages::InputEvent>,
         file_requester: Sender<messages::FileRequest>,
         file_returns: Receiver<messages::FileResponse> 
-
     ) -> Self {
 
         let output_builder = OutputStreamBuilder::from_default_device().unwrap();
@@ -41,7 +42,7 @@ impl Radio {
         let am = Radio::initialize_station_array(Band::AM, &output);
         let fm = Radio::initialize_station_array(Band::FM, &output);
         
-        let station_volume_profile = Radio::generate_station_volume_profile();
+        let station_volume_profile = utilities::generate_station_volume_profile();
         let am_volume_profile = Radio::initialize_volume_profile(
             &am,
             &station_volume_profile
@@ -99,25 +100,6 @@ impl Radio {
 
         station_array
     }
-    fn generate_station_volume_profile() -> [f32; constants::TICKS_PER_STATION] {
-  
-        let center = (constants::TICKS_PER_STATION / 2) as f32;
-        let plateau_half_width = center * 0.06;
-        let steepness = 0.05 * constants::TICKS_PER_STATION as f32;
-        
-        std::array::from_fn(|tick| {
-            // Get position within the station's band (0 to TICKS_PER_STATION)
-            let x = (tick % constants::TICKS_PER_STATION) as f32;
-            
-            let left_tanh = ((x - (center - plateau_half_width)) / steepness).tanh();
-            let right_tanh = ((x - (center + plateau_half_width)) / steepness).tanh();
-            
-            let volume = 0.5 * (left_tanh - right_tanh);
-            
-            // Round to 3 decimal places
-            (volume * 1000.0).round() / 1000.0
-        })
-    }
     fn initialize_volume_profile(
         band:&[Station; constants::NUMBER_OF_STATIONS],
         station_volume_profile: &[f32; constants::TICKS_PER_STATION]
@@ -135,7 +117,12 @@ impl Radio {
         volume_profile
     }
     pub fn station_on_air(&mut self, station_id:StationID) {
-        
+        let station = self.get_station(&station_id);
+        station.go_on_air();
+
+        if self.current_station == station_id {
+
+        }
     }
     pub fn tune(&mut self, new_dial_position:usize) {
         self.current_dial_position = new_dial_position;
@@ -173,6 +160,15 @@ impl Radio {
         else {
             self.fm.get_mut(self.current_station.index).unwrap()
         }
+    }
+    fn get_station(&mut self, id: &StationID) -> &mut Station {
+        if id.band == Band::AM {
+            self.am.get_mut(id.index).unwrap()
+        }
+        else {
+            self.fm.get_mut(id.index).unwrap()
+        }
+
     }
 }
 

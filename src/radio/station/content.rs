@@ -32,7 +32,7 @@ pub enum Band {
 /// ```
 /// StationID { band: Band::AM, index: 3 }  // AM station #3 (4th station, 0-indexed)
 /// ```
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Copy)]
 pub struct StationID {
     pub band: Band,
     pub index: usize,  // 0-11 for 12 stations per band
@@ -51,6 +51,7 @@ impl Clone for StationID {
 /// 
 /// Each variant encapsulates both the playlist strategy and the
 /// collection of tracks/streams that implement that strategy.
+
 pub enum PlayType {
     /// Pick any random track from the list
     /// Tracks stay in the list and can be replayed

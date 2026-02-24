@@ -265,8 +265,12 @@ impl Station {
     /// - Can broadcast when selected
     /// 
     /// Note: Station may be on-air but paused (not the currently active station)
-    pub fn go_on_air(&mut self) {
-        self.on_air = true;
+    pub fn go_on_air(&mut self) -> bool {
+        self.on_air = match self.play_list {
+            PlayType::Dead => false,
+            _ => true
+        };
+        self.on_air
     }
     
     /// Takes station off-air and pauses playback

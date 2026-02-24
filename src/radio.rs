@@ -117,12 +117,30 @@ impl Radio {
         volume_profile
     }
     pub fn station_on_air(&mut self, station_id:StationID) {
-        let station = self.get_station(&station_id);
-        station.go_on_air();
+        let is_on_air = self.get_station(&station_id).go_on_air();
+        self.update_volume_profile(station_id, is_on_air);
 
         if self.current_station == station_id {
-
+            self.tune(self.current_dial_position);
         }
+    }
+    pub fn station_off_air(&mut self, station_id:StationID) {
+        self.update_volume_profile(station_id, false);
+        self.get_station(&station_id).go_off_air();
+
+        if self.current_station == station_id {
+            self.tune(self.current_dial_position);
+        }
+    }
+    fn update_volume_profile(&mut self, station_id:StationID, on_air:bool) {
+        let start = station_id.index * constants::TICKS_PER_STATION;
+        let end = ( 1 + station_id.index ) * constants::TICKS_PER_STATION;
+        let updated_profile = if on_air {&self.station_volume_profile}else{&[0.0f32;constants::TICKS_PER_STATION]};
+        if station_id.band == Band::AM {
+            self.am_volume_profile[start..end].clone_from_slice(updated_profile);
+        }else{
+            self.fm_volume_profile[start..end].clone_from_slice(updated_profile);
+        };
     }
     pub fn tune(&mut self, new_dial_position:usize) {
         self.current_dial_position = new_dial_position;

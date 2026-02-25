@@ -3,20 +3,21 @@
 use std::path::PathBuf;
 use std::fs::File;
 use rodio::Decoder;
+use std::io::BufReader;
 
 use crate::radio::station::content::track::Track;
-use crate::radio::station::content::StationID;
+use crate::radio::station::content::{Band, StationID};
 
 // ===== Input Thread → Station Manager =====
 
 /// Events from the Input thread about user controls
 #[derive(Debug, Clone)]
 pub enum InputEvent {
-    /// Tuning dial moved to new ADC value (0-4095 or similar)
-    DialMoved { adc_value: u16 },
+    /// Tuning dial moved to new_dial_position value (0-4095 or similar)
+    DialMoved { new_dial_position: usize },
     
     /// AM/FM band switch toggled
-    BandSwitched { is_fm: bool },
+    BandSwitched { new_band: Band }
 }
 
 // ===== Station Manager → File Loader =====
@@ -44,7 +45,7 @@ pub enum FileResponse {
     /// Decoded audio file ready to append to sink
     TrackLoaded {
         station_id: StationID,
-        decoder: Decoder<File>,
+        audio_content: Decoder<BufReader<File>>,
     },
     
     /// Directory scan complete with track metadata

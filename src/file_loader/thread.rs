@@ -4,6 +4,8 @@
 use std::sync::mpsc::{Receiver, Sender};
 use std::collections::VecDeque;
 
+use crate::messages::{FileRequest,FileResponse};
+
 /// Runs the file loader thread
 /// 
 /// Responsibilities:
@@ -33,7 +35,3 @@ pub fn run_file_loader(
         std::thread::sleep(std::time::Duration::from_millis(10));
     }
 }
-
-// Placeholder types - will be defined in messages.rs
-struct FileRequest;
-struct FileResponse;

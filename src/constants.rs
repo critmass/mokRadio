@@ -10,3 +10,5 @@ pub const STATION_PATH: &'static str = "/stations";
 pub const TIME_BETWEEN_SKIPS: Duration = Duration::new(300, 0);
 pub const KNOB_DELAY: Duration = Duration::new(0, 3000000);
 pub const LOOP_DELAY: Duration = Duration::new(0, 10000000);
+pub const LEADING_REGISTER : u8 = 0x03;
+pub const BAND_SWITCH_PIN : u8 = 4;

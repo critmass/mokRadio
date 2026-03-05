@@ -4,7 +4,6 @@
 mod radio;
 mod input;
 mod file_loader;
-mod audio;
 mod messages;
 mod constants;
 
@@ -12,6 +11,8 @@ use std::fs::File;
 use std::path::{PathBuf};
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
+use crate::radio::Radio;
+use crate::radio::station::content::Band;
 
 use rodio::Decoder;
 use crate::messages::{FileRequest, FileResponse, InputEvent};
@@ -26,11 +27,12 @@ fn main() {
         (Sender<FileRequest>, Receiver<FileRequest>) = channel();
     let (file_response_tx, file_response_rx):
         (Sender<FileResponse>, Receiver<FileResponse>) = channel();
-    
-    // TODO: Spawn threads
-    // thread::spawn(|| input::thread::run_input_thread(input_tx));
-    // thread::spawn(|| file_loader::thread::run_file_loader(file_req_rx, file_resp_tx));
-    // station::manager::run_station_manager(input_rx, file_req_tx, file_resp_rx);
-    
-    println!("mokRadio initialized (threads not yet implemented)");
+
+    thread::spawn(|| input::thread::run_input_thread(input_tx));
+    thread::spawn(|| file_loader::thread::run_file_loader(file_request_rx, file_response_tx));
+        
+    let current_dial_position= input::rotary_encoder_reader;
+    let current_band= Band::AM;
+        
+    let mut _radio_ = Radio::new(current_dial_position, current_band);
 }

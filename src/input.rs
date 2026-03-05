@@ -1,6 +1,5 @@
 // Input module - handles ADC and GPIO input reading
 pub mod thread;
-pub mod adc_reader;
-pub mod gpio_handler;
 pub mod events;
-
+pub mod band_switch;
+pub mod tuner;

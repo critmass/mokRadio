@@ -13,7 +13,7 @@ use crate::{constants::STATION_PATH, input, messages::{FileRequest, FileResponse
 use crate::messages;
 use crate::constants;
 
-struct Radio {
+pub struct Radio {
     current_station:StationID,
     current_dial_position:usize,
     last_station_switch:Instant,
@@ -189,16 +189,16 @@ impl Radio {
         file_returns: Receiver<messages::FileResponse>
     ) {
         self.prime_stations(&file_requester);
+        println!("radio on and ready");
         loop {
             while let Ok(input_event) = input_events.try_recv() {
                 self.resolve_input_event(input_event);
                 sleep(constants::KNOB_DELAY);
-
             }
             if let Ok(file_response) = file_returns.try_recv(){
                 self.handle_file_return(file_response);
             }
-            self.manage_current_station(&file_requester);
+            if self.get_current_station().is_on_air() {self.manage_current_station(&file_requester);}
             if !self.has_skipped_since_last_station_switch && self.last_station_switch.elapsed() > constants::TIME_BETWEEN_SKIPS {
                 self.skip_dormant_stations(&file_requester);
                 self.has_skipped_since_last_station_switch = true;
